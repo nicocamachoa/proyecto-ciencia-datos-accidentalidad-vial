@@ -203,14 +203,35 @@ def crear_infografia(
     # ---------------------------------------------------------------------
     # Panel medio izquierdo: distribución por gravedad
     # ---------------------------------------------------------------------
+    # Panel medio izquierdo: distribución por gravedad
     ax_gravedad = fig.add_subplot(grid[1, 0:2])
 
     if "GRAVEDAD" in df_vista.columns:
-        conteo_grav = (
+        # Normalizar etiquetas de gravedad para evitar duplicados visuales
+        grav_clean = (
             df_vista["GRAVEDAD"]
+            .astype(str)
+            .str.strip()
+            .str.replace(r"\s+", " ", regex=True)
+            .str.lower()
+        )
+
+        # Mapeo explícito a 3 categorías limpias
+        mapping_gravedad = {
+            "solo daños": "Solo daños",
+            "solo danos": "Solo daños",      # por si se perdió la ñ
+            "con heridos": "Con heridos",
+            "con muertos": "Con muertos",
+        }
+
+        grav_clean = grav_clean.map(mapping_gravedad).fillna("Otra")
+
+        conteo_grav = (
+            grav_clean
             .value_counts()
             .sort_values(ascending=False)
         )
+
         sns.barplot(
             x=conteo_grav.index,
             y=conteo_grav.values,
